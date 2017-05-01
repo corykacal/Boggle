@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.border.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -30,7 +31,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
 	private final int HEIGHT = 400;
 	private static JTextArea currentWord;
 	private boolean newWord;
-	private JButton[] buttons;
+	private RoundButton[] buttons;
 	private boolean[][] selected;
 	private boolean[][] lastSelect;
 	private int points;
@@ -127,11 +128,11 @@ public class BoggleBoard extends JFrame implements ActionListener {
     
     
     public void makeCharacterButtons() {
-    	  buttons = new JButton[16];
+    	  buttons = new RoundButton[16];
           int index = 0;
           for(int x=0; x<4; x++) {
          	 for(int y=0; y<4; y++) {
-         		 buttons[index] = new JButton("");
+         		 buttons[index] = new RoundButton("");
          		 buttons[index].setSize(49, 49);
          		 buttons[index].setLocation(30 + x*54, 36 + y*54);
          		 content.add(buttons[index]);
