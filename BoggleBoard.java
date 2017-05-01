@@ -23,12 +23,13 @@ import javax.swing.Timer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+@SuppressWarnings("serial")
 public class BoggleBoard extends JFrame implements ActionListener {
 
 
 	private TreeSet<String> words;
 	private final int WIDTH = 275;
-	private final int HEIGHT = 400;
+	private final int HEIGHT = 450;
 	private static JTextArea currentWord;
 	private boolean newWord;
 	private RoundButton[] buttons;
@@ -39,7 +40,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
 	private JTextArea pointCnt;
 	private JPanel content;
 	private Timer time;
-	private int curTime;
+	private double curTime;
 	private JTextArea clock;
 	private char[] charFrequency;
 	
@@ -56,8 +57,8 @@ public class BoggleBoard extends JFrame implements ActionListener {
         currentWord = new JTextArea();
         currentWord.setEditable(false);
         clock = new JTextArea();
-        clock.setSize(30,30);
-        clock.setLocation(WIDTH/2-15, 5);
+        clock.setSize(50,20);
+        clock.setLocation(WIDTH/2-15, 50);
         clock.setBackground(Color.yellow);
         clock.setEditable(false);
        
@@ -65,12 +66,12 @@ public class BoggleBoard extends JFrame implements ActionListener {
         
         pointCnt = new JTextArea("Points: "+points);
         pointCnt.setSize(WIDTH/2, 30);
-        pointCnt.setLocation(WIDTH/2, 265);
+        pointCnt.setLocation(WIDTH/2, 300);
         pointCnt.setBackground(Color.lightGray);
         content.add(pointCnt);
          
          currentWord.setSize(WIDTH/2, 30);
-         currentWord.setLocation(0,265);
+         currentWord.setLocation(0,300);
          currentWord.setBackground(Color.gray);
          String htmlButton = "<html><p style=\"text-align: center;\"><span style=\"color:#f0fff0;\"><span style=\"font-family: verdana,geneva,sans-serif;\"><code><span style=\"background-color: rgb(255, 215, 0);\">Submit Word </span></code></span></span></p>";
 		JButton submit = new JButton(htmlButton);
@@ -83,8 +84,9 @@ public class BoggleBoard extends JFrame implements ActionListener {
 		
 		
 		
-		submit.setLocation(0, 300);
-		submit.setSize(WIDTH, 30);
+		submit.setLocation(0, 330);
+		submit.setSize(WIDTH, 93);
+		submit.setBackground(Color.yellow);
 		content.add(submit);
         JButton bottom = new JButton("Start New Game");
         bottom.addActionListener(new ActionListener() {
@@ -93,8 +95,9 @@ public class BoggleBoard extends JFrame implements ActionListener {
         	}
         });
         
-        bottom.setSize(WIDTH, 30);
-        bottom.setLocation(0, HEIGHT-60);
+        bottom.setSize(WIDTH, 40);
+        bottom.setLocation(0, 0);
+        bottom.setBackground(Color.red);
         
         content.add(bottom, BorderLayout.PAGE_END);
         content.add(currentWord);
@@ -103,7 +106,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
         setSize(WIDTH, HEIGHT);
         setLocationByPlatform(true);
         setVisible(true);
-        time = new Timer(1000, this);
+        time = new Timer(100, this);
 
         setUpNewGame();
     }
@@ -134,7 +137,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
          	 for(int y=0; y<4; y++) {
          		 buttons[index] = new RoundButton("");
          		 buttons[index].setSize(49, 49);
-         		 buttons[index].setLocation(30 + x*54, 36 + y*54);
+         		 buttons[index].setLocation(30 + x*54, 76 + y*54);
          		 content.add(buttons[index]);
          		 JButton current = buttons[index];
          		 int xpos = x;
@@ -154,7 +157,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
     
     public void setUpNewGame() {
     	time.start();
-    	curTime = 60;
+    	curTime = 60.0;
     	wordsFound = new ArrayList<String>();
 		newButtons();
 		points = 0;
@@ -167,8 +170,8 @@ public class BoggleBoard extends JFrame implements ActionListener {
     }
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		curTime--;
-		clock.setText(""+curTime);
+		curTime-=.10;
+		clock.setText(String.format("%.1f", curTime));
 		if(curTime==0) {
 			time.stop();
 			endGame();
