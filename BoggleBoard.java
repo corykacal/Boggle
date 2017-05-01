@@ -6,6 +6,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Random;
+import javax.swing.Timer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -26,17 +28,22 @@ public class BoggleBoard extends JFrame implements ActionListener {
 	private TreeSet<String> words;
 	private final int WIDTH = 275;
 	private final int HEIGHT = 400;
-	private JTextArea currentWord;
+	private static JTextArea currentWord;
 	private boolean newWord;
 	private JButton[] buttons;
 	private boolean[][] selected;
 	private boolean[][] lastSelect;
 	private int points;
 	private ArrayList<String> wordsFound;
-	private JButton pointCnt;
+	private JTextArea pointCnt;
 	private JPanel content;
+	private Timer time;
+	private int curTime;
+	private JTextArea clock;
+	private char[] charFrequency;
 	
     public BoggleBoard() throws FileNotFoundException {
+    	addFrequencies();
     	content = new JPanel();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	content.setOpaque(true);
@@ -47,29 +54,37 @@ public class BoggleBoard extends JFrame implements ActionListener {
         
         currentWord = new JTextArea();
         currentWord.setEditable(false);
+        clock = new JTextArea();
+        clock.setSize(30,30);
+        clock.setLocation(WIDTH/2-15, 5);
+        clock.setBackground(Color.yellow);
+        clock.setEditable(false);
        
         makeCharacterButtons();
-        resetAllColors();
         
-        pointCnt = new JButton("Points: "+points);
+        pointCnt = new JTextArea("Points: "+points);
         pointCnt.setSize(WIDTH/2, 30);
-        pointCnt.setLocation(WIDTH/2, 250);
+        pointCnt.setLocation(WIDTH/2, 265);
         pointCnt.setBackground(Color.lightGray);
         content.add(pointCnt);
          
          currentWord.setSize(WIDTH/2, 30);
-         currentWord.setLocation(0,250);
+         currentWord.setLocation(0,265);
          currentWord.setBackground(Color.gray);
-		JButton submit = new JButton("Submit Word");
+         String htmlButton = "<html><p style=\"text-align: center;\"><span style=\"color:#f0fff0;\"><span style=\"font-family: verdana,geneva,sans-serif;\"><code><span style=\"background-color: rgb(255, 215, 0);\">Submit Word </span></code></span></span></p>";
+		JButton submit = new JButton(htmlButton);
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if(curTime>0)
 				resetWord();
 			}
 		});
+		
+		
+		
 		submit.setLocation(0, 300);
 		submit.setSize(WIDTH, 30);
 		content.add(submit);
-		
         JButton bottom = new JButton("Start New Game");
         bottom.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -79,17 +94,37 @@ public class BoggleBoard extends JFrame implements ActionListener {
         
         bottom.setSize(WIDTH, 30);
         bottom.setLocation(0, HEIGHT-60);
-
+        
         content.add(bottom, BorderLayout.PAGE_END);
         content.add(currentWord);
+        content.add(clock);
         setContentPane(content);
         setSize(WIDTH, HEIGHT);
         setLocationByPlatform(true);
         setVisible(true);
-        setUpNewGame();
-        
+        time = new Timer(1000, this);
 
+        setUpNewGame();
     }
+    
+    public void addFrequencies() {
+    	charFrequency = new char[]{'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
+    							   'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 't',
+    							   't', 't', 't', 't', 't', 't', 't', 't', 't', 't',
+    							   't', 't', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a',
+    							   'a', 'a', 'a', 'a', 'r', 'r', 'r', 'r', 'r', 'r',
+    							   'r', 'r', 'r', 'r', 'r', 'r', 'i', 'i', 'i', 'i', 
+    							   'i', 'i', 'i', 'i', 'i', 'i', 'i', 'n', 'n', 'n', 
+    							   'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'o', 'o', 
+    							   'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 's', 
+    							   's', 's', 's', 's', 's', 's', 's', 's', 'd', 'd', 
+    							   'd', 'd', 'd', 'd', 'c', 'c', 'c', 'c', 'c', 'h', 
+    							   'h', 'h', 'h', 'h', 'l', 'l', 'l', 'l', 'l', 'f', 
+    							   'f', 'f', 'f', 'm', 'm', 'm', 'm', 'p', 'p', 'p', 
+    							   'p', 'u', 'u', 'u', 'u', 'g', 'g', 'g', 'y', 'y', 
+    							   'y', 'w', 'w', 'b', 'j', 'k', 'q', 'v', 'x', 'z' }; 
+    	}
+    
     
     public void makeCharacterButtons() {
     	  buttons = new JButton[16];
@@ -98,7 +133,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
          	 for(int y=0; y<4; y++) {
          		 buttons[index] = new JButton("");
          		 buttons[index].setSize(49, 49);
-         		 buttons[index].setLocation(30 + x*54, 10 + y*54);
+         		 buttons[index].setLocation(30 + x*54, 36 + y*54);
          		 content.add(buttons[index]);
          		 JButton current = buttons[index];
          		 int xpos = x;
@@ -117,6 +152,8 @@ public class BoggleBoard extends JFrame implements ActionListener {
     }
     
     public void setUpNewGame() {
+    	time.start();
+    	curTime = 60;
     	wordsFound = new ArrayList<String>();
 		newButtons();
 		points = 0;
@@ -129,8 +166,51 @@ public class BoggleBoard extends JFrame implements ActionListener {
     }
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub
+		curTime--;
+		clock.setText(""+curTime);
+		if(curTime==0) {
+			time.stop();
+			endGame();
+		}
 		
+	}
+	
+	public void endGame() {
+		JPanel gameover = new JPanel();
+		gameover.setOpaque(true);
+        gameover.setBackground(Color.WHITE);
+        gameover.setLayout(null);
+		JTextArea block = new JTextArea();
+		block.setSize(HEIGHT, WIDTH/3);
+		block.setLocation(0,0);
+		block.setText("Your score is " + pointCnt.getText() + "\n would you like to start a new game?");
+		block.setEditable(false);
+		block.setBackground(Color.yellow);
+		JButton yes = new JButton("yes");
+		yes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				content.setVisible(true);
+				gameover.setVisible(false);
+				setContentPane(content);
+				setUpNewGame();
+				return;
+			}
+		});
+		JButton no = new JButton("no");
+		no.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		yes.setSize(WIDTH/4,30);
+		no.setSize(WIDTH/4, 30);
+		yes.setLocation(50,HEIGHT/2);
+		no.setLocation(150,HEIGHT/2);
+		setContentPane(gameover);
+		gameover.add(block);
+		gameover.add(yes);
+		gameover.add(no);
+		gameover.setVisible(true);
 	}
 	
 	public void resetWord() {
@@ -150,13 +230,10 @@ public class BoggleBoard extends JFrame implements ActionListener {
 	}
 	
 	public void adjustPoints(String word) {
-		ArrayList<Character> rareChar = new ArrayList<Character>(Arrays.asList('j', 'x', 'q', 'z'));
-		ArrayList<Character> uncommonChars = new ArrayList<Character>(Arrays.asList('k', 'v', 'b', 'p', 'y', 'g', 'f', 'w', 'm', 'u', 'c'));
+		ArrayList<Character> rareChar = new ArrayList<Character>(Arrays.asList('j', 'x', 'q', 'z', 'k', 'v'));
 		for(int x=0; x<word.length(); x++) {
 			char cur = word.charAt(x);
 			if(rareChar.contains(cur)) {
-				points+=3;
-			} else if(uncommonChars.contains(cur)) {
 				points+=2;
 			} else {
 				points+=1;
@@ -197,13 +274,16 @@ public class BoggleBoard extends JFrame implements ActionListener {
 	
 	public void newButtons() {
 		Random ran = new Random();
-		char newChar;
 		for(int x=0; x<16; x++) {
-			newChar = (char) (65 + ran.nextInt(26));
-			buttons[x].setText(""+newChar);
+			int newCharIndex = ran.nextInt(charFrequency.length);
+			String newChar = ""+charFrequency[newCharIndex];
+			buttons[x].setText(""+newChar.toUpperCase());
 		}
 	}
 	
+
+ 
+ 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
