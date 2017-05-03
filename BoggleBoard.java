@@ -172,7 +172,7 @@ public class BoggleBoard extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		curTime-=.10;
 		clock.setText(String.format("%.1f", curTime));
-		if(curTime==0) {
+		if(curTime<0) {
 			time.stop();
 			endGame();
 		}
